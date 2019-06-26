@@ -1643,6 +1643,23 @@ function _Json_addEntry(func)
 var _Json_encodeNull = _Json_wrap(null);
 
 
+function _Url_percentEncode(string)
+{
+	return encodeURIComponent(string);
+}
+
+function _Url_percentDecode(string)
+{
+	try
+	{
+		return elm$core$Maybe$Just(decodeURIComponent(string));
+	}
+	catch (e)
+	{
+		return elm$core$Maybe$Nothing;
+	}
+}
+
 
 // TASKS
 
@@ -2312,23 +2329,6 @@ function _Platform_mergeExportsDebug(moduleName, obj, exports)
 	}
 }
 
-
-function _Url_percentEncode(string)
-{
-	return encodeURIComponent(string);
-}
-
-function _Url_percentDecode(string)
-{
-	try
-	{
-		return elm$core$Maybe$Just(decodeURIComponent(string));
-	}
-	catch (e)
-	{
-		return elm$core$Maybe$Nothing;
-	}
-}
 
 
 
@@ -4364,16 +4364,32 @@ var _Bitwise_shiftRightZfBy = F2(function(offset, a)
 {
 	return a >>> offset;
 });
-var author$project$Util$Questions = {$: 'Questions'};
-var elm$core$Basics$True = {$: 'True'};
-var elm$core$Basics$False = {$: 'False'};
-var elm$core$Result$isOk = function (result) {
-	if (result.$ === 'Ok') {
-		return true;
-	} else {
-		return false;
-	}
-};
+var author$project$Util$FindServer = {$: 'FindServer'};
+var author$project$Util$Unopened = {$: 'Unopened'};
+var elm$core$List$foldl = F3(
+	function (func, acc, list) {
+		foldl:
+		while (true) {
+			if (!list.b) {
+				return acc;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				var $temp$func = func,
+					$temp$acc = A2(func, x, acc),
+					$temp$list = xs;
+				func = $temp$func;
+				acc = $temp$acc;
+				list = $temp$list;
+				continue foldl;
+			}
+		}
+	});
+var elm$core$Array$branchFactor = 32;
+var elm$core$Array$Array_elm_builtin = F4(
+	function (a, b, c, d) {
+		return {$: 'Array_elm_builtin', a: a, b: b, c: c, d: d};
+	});
 var elm$core$Basics$EQ = {$: 'EQ'};
 var elm$core$Basics$GT = {$: 'GT'};
 var elm$core$Basics$LT = {$: 'LT'};
@@ -4454,11 +4470,6 @@ var elm$core$Array$foldr = F3(
 var elm$core$Array$toList = function (array) {
 	return A3(elm$core$Array$foldr, elm$core$List$cons, _List_Nil, array);
 };
-var elm$core$Array$branchFactor = 32;
-var elm$core$Array$Array_elm_builtin = F4(
-	function (a, b, c, d) {
-		return {$: 'Array_elm_builtin', a: a, b: b, c: c, d: d};
-	});
 var elm$core$Basics$ceiling = _Basics_ceiling;
 var elm$core$Basics$fdiv = _Basics_fdiv;
 var elm$core$Basics$logBase = F2(
@@ -4477,25 +4488,6 @@ var elm$core$Array$SubTree = function (a) {
 	return {$: 'SubTree', a: a};
 };
 var elm$core$Elm$JsArray$initializeFromList = _JsArray_initializeFromList;
-var elm$core$List$foldl = F3(
-	function (func, acc, list) {
-		foldl:
-		while (true) {
-			if (!list.b) {
-				return acc;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				var $temp$func = func,
-					$temp$acc = A2(func, x, acc),
-					$temp$list = xs;
-				func = $temp$func;
-				acc = $temp$acc;
-				list = $temp$list;
-				continue foldl;
-			}
-		}
-	});
 var elm$core$List$reverse = function (list) {
 	return A3(elm$core$List$foldl, elm$core$List$cons, _List_Nil, list);
 };
@@ -4583,6 +4575,7 @@ var elm$core$Array$builderToArray = F2(
 				builder.tail);
 		}
 	});
+var elm$core$Basics$False = {$: 'False'};
 var elm$core$Basics$idiv = _Basics_idiv;
 var elm$core$Basics$lt = _Utils_lt;
 var elm$core$Elm$JsArray$initialize = _JsArray_initialize;
@@ -4634,6 +4627,14 @@ var elm$core$Result$Err = function (a) {
 };
 var elm$core$Result$Ok = function (a) {
 	return {$: 'Ok', a: a};
+};
+var elm$core$Basics$True = {$: 'True'};
+var elm$core$Result$isOk = function (result) {
+	if (result.$ === 'Ok') {
+		return true;
+	} else {
+		return false;
+	}
 };
 var elm$json$Json$Decode$Failure = F2(
 	function (a, b) {
@@ -4840,13 +4841,66 @@ var elm$json$Json$Decode$errorToStringHelp = F2(
 			}
 		}
 	});
-var elm$core$Platform$Cmd$batch = _Platform_batch;
-var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
+var elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			elm$core$List$foldl,
+			F2(
+				function (_n0, obj) {
+					var k = _n0.a;
+					var v = _n0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var elm$json$Json$Encode$string = _Json_wrap;
+var author$project$Websocket$message = F2(
+	function (msgType, msg) {
+		return elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'msgType',
+					elm$json$Json$Encode$string(msgType)),
+					_Utils_Tuple2('msg', msg)
+				]));
+	});
+var elm$core$Basics$identity = function (x) {
+	return x;
+};
+var author$project$Websocket$toSocket = _Platform_outgoingPort('toSocket', elm$core$Basics$identity);
+var elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(_Utils_Tuple0),
+				entries));
+	});
+var author$project$Websocket$connect = F2(
+	function (url, protocols) {
+		return author$project$Websocket$toSocket(
+			A2(
+				author$project$Websocket$message,
+				'connect',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'url',
+							elm$json$Json$Encode$string(url)),
+							_Utils_Tuple2(
+							'protocols',
+							A2(elm$json$Json$Encode$list, elm$json$Json$Encode$string, protocols))
+						]))));
+	});
 var author$project$Main$init = F3(
 	function (flags, url, key) {
 		return _Utils_Tuple2(
-			{correct: true, key: key, route: author$project$Util$Questions},
-			elm$core$Platform$Cmd$none);
+			{correct: true, key: key, route: author$project$Util$FindServer, socketInfo: author$project$Util$Unopened},
+			A2(author$project$Websocket$connect, 'wss://localhost:3000', _List_Nil));
 	});
 var author$project$Util$Closed = function (a) {
 	return {$: 'Closed', a: a};
@@ -5041,11 +5095,16 @@ var author$project$Main$subscriptions = function (_n0) {
 			}
 		});
 };
-var author$project$Util$NotFound = {$: 'NotFound'};
-var author$project$Util$Review = {$: 'Review'};
-var elm$core$Basics$identity = function (x) {
-	return x;
+var author$project$Util$Connected = function (a) {
+	return {$: 'Connected', a: a};
 };
+var author$project$Util$ConnectionClosed = function (a) {
+	return {$: 'ConnectionClosed', a: a};
+};
+var author$project$Util$NotFound = {$: 'NotFound'};
+var author$project$Util$Questions = {$: 'Questions'};
+var author$project$Util$Review = {$: 'Review'};
+var author$project$Util$Waiting = {$: 'Waiting'};
 var elm$core$List$map = F2(
 	function (f, xs) {
 		return A3(
@@ -5161,11 +5220,15 @@ var elm$url$Url$Parser$top = elm$url$Url$Parser$Parser(
 var author$project$Util$urlParser = elm$url$Url$Parser$oneOf(
 	_List_fromArray(
 		[
-			A2(elm$url$Url$Parser$map, author$project$Util$Questions, elm$url$Url$Parser$top),
+			A2(elm$url$Url$Parser$map, author$project$Util$FindServer, elm$url$Url$Parser$top),
 			A2(
 			elm$url$Url$Parser$map,
 			author$project$Util$Questions,
-			elm$url$Url$Parser$s('index.html')),
+			elm$url$Url$Parser$s('questions')),
+			A2(
+			elm$url$Url$Parser$map,
+			author$project$Util$Waiting,
+			elm$url$Url$Parser$s('waiting')),
 			A2(
 			elm$url$Url$Parser$map,
 			author$project$Util$Review,
@@ -5816,6 +5879,23 @@ var author$project$Util$parseUrl = function (url) {
 		author$project$Util$NotFound,
 		A2(elm$url$Url$Parser$parse, author$project$Util$urlParser, url));
 };
+var author$project$Websocket$sendString = F2(
+	function (connection, text) {
+		return author$project$Websocket$toSocket(
+			A2(
+				author$project$Websocket$message,
+				'sendString',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'url',
+							elm$json$Json$Encode$string(connection.url)),
+							_Utils_Tuple2(
+							'message',
+							elm$json$Json$Encode$string(text))
+						]))));
+	});
 var elm$browser$Browser$External = function (a) {
 	return {$: 'External', a: a};
 };
@@ -6056,6 +6136,8 @@ var elm$url$Url$fromString = function (str) {
 };
 var elm$browser$Browser$Navigation$load = _Browser_load;
 var elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
+var elm$core$Platform$Cmd$batch = _Platform_batch;
+var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var elm$url$Url$addPort = F2(
 	function (maybePort, starter) {
 		if (maybePort.$ === 'Nothing') {
@@ -6102,53 +6184,78 @@ var elm$url$Url$toString = function (url) {
 };
 var author$project$Main$update = F2(
 	function (msg, model) {
-		_n0$3:
-		while (true) {
-			switch (msg.$) {
-				case 'Answer':
-					if (msg.a === 2) {
-						return _Utils_Tuple2(
-							_Utils_update(
-								model,
-								{correct: true}),
-							A2(elm$browser$Browser$Navigation$pushUrl, model.key, '/review'));
-					} else {
-						break _n0$3;
-					}
-				case 'Req':
-					var req = msg.a;
-					if (req.$ === 'Internal') {
-						var url = req.a;
-						return _Utils_Tuple2(
-							model,
-							A2(
-								elm$browser$Browser$Navigation$pushUrl,
-								model.key,
-								elm$url$Url$toString(url)));
-					} else {
-						var href = req.a;
-						return _Utils_Tuple2(
-							model,
-							elm$browser$Browser$Navigation$load(href));
-					}
-				case 'Change':
-					var url = msg.a;
+		switch (msg.$) {
+			case 'Answer':
+				var a = msg.a;
+				var _n1 = model.socketInfo;
+				if (_n1.$ === 'Connected') {
+					var socketInfo = _n1.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{
-								route: author$project$Util$parseUrl(url)
-							}),
-						elm$core$Platform$Cmd$none);
-				default:
-					break _n0$3;
-			}
+							{correct: true}),
+						elm$core$Platform$Cmd$batch(
+							_List_fromArray(
+								[
+									A2(elm$browser$Browser$Navigation$pushUrl, model.key, '/waiting'),
+									A2(
+									author$project$Websocket$sendString,
+									socketInfo,
+									elm$core$String$fromInt(a))
+								])));
+				} else {
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				}
+			case 'Req':
+				var req = msg.a;
+				if (req.$ === 'Internal') {
+					var url = req.a;
+					return _Utils_Tuple2(
+						model,
+						A2(
+							elm$browser$Browser$Navigation$pushUrl,
+							model.key,
+							elm$url$Url$toString(url)));
+				} else {
+					var href = req.a;
+					return _Utils_Tuple2(
+						model,
+						elm$browser$Browser$Navigation$load(href));
+				}
+			case 'Change':
+				var url = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							route: author$project$Util$parseUrl(url)
+						}),
+					elm$core$Platform$Cmd$none);
+			case 'Connect':
+				var info = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							socketInfo: author$project$Util$Connected(info)
+						}),
+					elm$core$Platform$Cmd$none);
+			case 'Closed':
+				var unsent = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							socketInfo: author$project$Util$ConnectionClosed(unsent)
+						}),
+					elm$core$Platform$Cmd$none);
+			default:
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{correct: false}),
+					A2(elm$browser$Browser$Navigation$pushUrl, model.key, '/waiting'));
 		}
-		return _Utils_Tuple2(
-			_Utils_update(
-				model,
-				{correct: false}),
-			A2(elm$browser$Browser$Navigation$pushUrl, model.key, '/review'));
 	});
 var mdgriffith$elm_ui$Internal$Model$Height = function (a) {
 	return {$: 'Height', a: a};
@@ -6284,7 +6391,6 @@ var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$p = _VirtualDom_node('p');
 var elm$html$Html$s = _VirtualDom_node('s');
 var elm$html$Html$u = _VirtualDom_node('u');
-var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(
@@ -11936,10 +12042,26 @@ var author$project$Review$view = function (model) {
 var author$project$Main$view = function (model) {
 	var _n0 = model.route;
 	switch (_n0.$) {
+		case 'FindServer':
+			return {
+				body: _List_fromArray(
+					[
+						elm$html$Html$text('TODO')
+					]),
+				title: 'Find Server'
+			};
 		case 'Questions':
 			return author$project$Question$view(model);
 		case 'Review':
 			return author$project$Review$view(model);
+		case 'Waiting':
+			return {
+				body: _List_fromArray(
+					[
+						elm$html$Html$text('Waiting...')
+					]),
+				title: 'Waiting'
+			};
 		default:
 			return {
 				body: _List_fromArray(

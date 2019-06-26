@@ -1,4 +1,4 @@
-module Util exposing (Model, Msg(..), Route(..), parseUrl, urlParser)
+module Util exposing (Model, Msg(..), Route(..), SocketStatus(..), parseUrl, urlParser)
 
 import Browser
 import Browser.Navigation as Nav
@@ -12,6 +12,7 @@ type Msg
     | Req Browser.UrlRequest
     | Change Url.Url
     | Connect Websocket.ConnectionInfo
+    | ConnectUrl String
     | Closed Int
     | Recieve String
     | Error String
@@ -19,22 +20,32 @@ type Msg
 
 type Route
     = Questions
+    | Waiting
     | Review
     | NotFound
+    | FindServer
+
+
+type SocketStatus
+    = Unopened
+    | Connected Websocket.ConnectionInfo
+    | ConnectionClosed Int
 
 
 type alias Model =
     { correct : Bool
     , key : Nav.Key
     , route : Route
+    , socketInfo : SocketStatus
     }
 
 
 urlParser : Parser (Route -> a) a
 urlParser =
     oneOf
-        [ map Questions top
-        , map Questions <| s "index.html"
+        [ map FindServer top
+        , map Questions <| s "questions"
+        , map Waiting <| s "waiting"
         , map Review <| s "review"
         ]
 

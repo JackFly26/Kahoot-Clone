@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Html exposing (text)
 import Question
 import Review
+import Task exposing (andThen)
 import Url
 import Util
 import Websocket
@@ -35,21 +36,32 @@ subscriptions _ =
 init : () -> Url.Url -> Nav.Key -> ( Util.Model, Cmd Util.Msg )
 init flags url key =
     ( { correct = True
-      , route = Util.Questions
+      , route = Util.FindServer
       , key = key
+      , socketInfo = Util.Unopened
       }
-    , Cmd.none
+    , Websocket.connect "wss://localhost:3000" []
     )
 
 
 view : Util.Model -> Browser.Document Util.Msg
 view model =
     case model.route of
+        Util.FindServer ->
+            { title = "Find Server"
+            , body = [ text "TODO" ]
+            }
+
         Util.Questions ->
             Question.view model
 
         Util.Review ->
             Review.view model
+
+        Util.Waiting ->
+            { title = "Waiting"
+            , body = [ text "Waiting..." ]
+            }
 
         Util.NotFound ->
             { title = "Error 404"
@@ -60,8 +72,18 @@ view model =
 update : Util.Msg -> Util.Model -> ( Util.Model, Cmd Util.Msg )
 update msg model =
     case msg of
-        Util.Answer 2 ->
-            ( { model | correct = True }, Nav.pushUrl model.key "/review" )
+        Util.Answer a ->
+            case model.socketInfo of
+                Util.Connected socketInfo ->
+                    ( { model | correct = True }
+                    , Cmd.batch
+                        [ Nav.pushUrl model.key "/waiting"
+                        , Websocket.sendString socketInfo <| String.fromInt a
+                        ]
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         Util.Req req ->
             case req of
@@ -74,8 +96,14 @@ update msg model =
         Util.Change url ->
             ( { model | route = Util.parseUrl url }, Cmd.none )
 
+        Util.Connect info ->
+            ( { model | socketInfo = Util.Connected info }, Cmd.none )
+
+        Util.Closed unsent ->
+            ( { model | socketInfo = Util.ConnectionClosed unsent }, Cmd.none )
+
         _ ->
-            ( { model | correct = False }, Nav.pushUrl model.key "/review" )
+            ( { model | correct = False }, Nav.pushUrl model.key "/waiting" )
 
 
 main =
