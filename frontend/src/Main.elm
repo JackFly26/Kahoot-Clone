@@ -40,7 +40,7 @@ init flags url key =
       , key = key
       , socketInfo = Util.Unopened
       }
-    , Websocket.connect "wss://localhost:3000" []
+    , Websocket.connect "ws://localhost:3000" []
     )
 
 
@@ -102,8 +102,10 @@ update msg model =
         Util.Closed unsent ->
             ( { model | socketInfo = Util.ConnectionClosed unsent }, Cmd.none )
 
-        _ ->
-            ( { model | correct = False }, Nav.pushUrl model.key "/waiting" )
+        other ->
+            case Debug.log "Other" other of
+                _ ->
+                    ( model, Cmd.none )
 
 
 main =
