@@ -1,0 +1,18 @@
+name: backend
+version: 0.1.0
+
+authors:
+  - JackFly26 <jackfleishman@outlook.com>
+
+targets:
+  backend:
+    main: src/backend.cr
+
+dependencies:
+        kemal:
+                github: kemalcr/kemal
+
+
+crystal: 0.28.0
+
+license: MIT

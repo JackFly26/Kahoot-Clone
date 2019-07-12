@@ -88,7 +88,7 @@ update msg model =
         Util.Req req ->
             case req of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.key (Url.toString url) )
+                    ( model, Nav.pushUrl model.key <| Url.toString url )
 
                 Browser.External href ->
                     ( model, Nav.load href )
