@@ -16,6 +16,7 @@ type Msg
     | Closed Int
     | Recieve String
     | Error String
+    | ServerSelected String
 
 
 type Route

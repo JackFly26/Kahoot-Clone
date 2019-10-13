@@ -8,9 +8,13 @@ module Backend
   ws "/" do |socket|
     socket.on_message do |message|
       case message.to_i { -1 }
-      when Int32
-        socket.close message
+      when 0
+        puts "test"
+        socket.send "1"
+      else
+        socket.send "0"
       end
+      socket.close
     end
   end
 

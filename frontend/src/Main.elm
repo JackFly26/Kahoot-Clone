@@ -3,6 +3,7 @@ module Main exposing (main)
 import Browser
 import Browser.Navigation as Nav
 import Html exposing (text)
+import Home
 import Question
 import Review
 import Task exposing (andThen)
@@ -48,9 +49,7 @@ view : Util.Model -> Browser.Document Util.Msg
 view model =
     case model.route of
         Util.FindServer ->
-            { title = "Find Server"
-            , body = [ text "TODO" ]
-            }
+            Home.view model
 
         Util.Questions ->
             Question.view model
@@ -84,6 +83,8 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+        Util.ServerSelected server ->
+            (model, Nav.pushUrl model.key "/questions")
 
         Util.Req req ->
             case req of
@@ -101,6 +102,12 @@ update msg model =
 
         Util.Closed unsent ->
             ( { model | socketInfo = Util.ConnectionClosed unsent }, Cmd.none )
+
+        Util.Recieve message ->
+            (case message of
+                "1" ->
+                    { model | correct = True }
+                _ -> { model | correct = False }, Nav.pushUrl model.key "/review" )
 
         other ->
             case Debug.log "Other" other of
